@@ -1,5 +1,5 @@
-import Header from './componentes/Header';
-import FormWrapper from './componentes/FormWrapper';
+import Header from './components/Header';
+import FormWrapper from './components/FormWrapper';
 
 export default function Home() {
     return (
