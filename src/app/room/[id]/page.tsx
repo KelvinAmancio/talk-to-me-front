@@ -1,8 +1,35 @@
+'use client';
+
 import Chat from "@/app/componentes/Chat";
 import Footer from "@/app/componentes/Footer";
 import Header from "@/app/componentes/Header";
+import { SocketContext } from "@/context/SocketContext";
+import { useContext, useEffect, useRef } from "react";
 
 export default function Room({ params }: { params: { id: string } }) {
+    const { socket } = useContext(SocketContext);
+    const localStream = useRef<HTMLVideoElement>(null);
+
+    useEffect(() => {
+        socket?.on('connect', async () => {
+            console.log('conectado');
+            socket?.emit('subscribe', {
+                roomId: params.id,
+                socketId: socket.id,
+            });
+            await initCamera();
+        });
+    }, [socket]);
+
+    const initCamera = async () => {
+        const video = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: true,
+        });
+        console.log('🚀 ~ initCamera ~ video:', video);
+        if (localStream.current) localStream.current.srcObject = video;
+    };
+
     return (
         <div className='h-screen'>
             <Header />
@@ -10,7 +37,11 @@ export default function Room({ params }: { params: { id: string } }) {
                 <div className='md:w-[85%] w-full m-3'>
                     <div className='grid md:grid-cols-2 grid-cols-1 gap-8'>
                         <div className='bg-gray-950 w-full h-full rounded-md p-2 relative'>
-                            <video className='h-full w-full' src=''></video>
+                            <video
+                                className="h-full w-full"
+                                autoPlay
+                                ref={localStream}
+                            ></video>
                             <span className='absolute bottom-3'>Room</span>
                         </div>
                         <div className='bg-gray-950 w-full h-full rounded-md p-2 relative'>
@@ -27,7 +58,7 @@ export default function Room({ params }: { params: { id: string } }) {
                         </div>
                     </div>
                 </div>
-                <Chat />
+                <Chat roomId={params.id} />
             </div>
             <Footer />
         </div>
